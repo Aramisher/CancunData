@@ -19,13 +19,31 @@ def procesar_datos(ruta_archivo):
         return [str(e)]
 
 def generar_graficas(df):
+    import os
+    import matplotlib.pyplot as plt
+
     # Crear la carpeta si no existe
     os.makedirs('outputs/graficas/', exist_ok=True)
-    # Generar y guardar las gráficas
-    plt.figure(figsize=(10, 5))
-    plt.plot(df['Mes'], df['Ventas'], marker='o')
-    plt.title('Ventas Mensuales')
-    plt.xlabel('Mes')
-    plt.ylabel('Ventas')
-    plt.grid(True)
-    plt.savefig('outputs/graficas/ventas_mensuales.png')
+
+    # Determinar el eje X (Meses o Fecha)
+    if 'Mes' in df.columns:
+        eje_x = df['Mes']
+    elif 'Fecha' in df.columns:
+        eje_x = df['Fecha']
+    else:
+        eje_x = df.index  # Usar el índice si no hay columna de tiempo
+
+    # Obtener todas las columnas numéricas excepto el eje X
+    columnas_numericas = df.select_dtypes(include='number').columns.tolist()
+    columnas_numericas = [col for col in columnas_numericas if col != 'Mes' and col != 'Fecha']
+
+    # Generar gráficas para cada columna numérica
+    for columna in columnas_numericas:
+        plt.figure(figsize=(10, 5))
+        plt.plot(eje_x, df[columna], marker='o')
+        plt.title(f'{columna} Mensuales')
+        plt.xlabel('Mes')
+        plt.ylabel(columna)
+        plt.grid(True)
+        plt.savefig(f'outputs/graficas/{columna.lower()}_mensuales.png')
+        plt.close()
