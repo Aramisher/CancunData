@@ -56,6 +56,8 @@ def iniciar_aplicacion():
     radio_linea.pack(anchor='w', pady=2)
     radio_barras = ttk.Radiobutton(frame, text="Barras", variable=tipo_var, value="barras", bootstyle="primary")
     radio_barras.pack(anchor='w', pady=2)
+    radio_pie = ttk.Radiobutton(frame, text="Pie Chart", variable=tipo_var, value="pie", bootstyle="primary")
+    radio_pie.pack(anchor='w', pady=2)
 
     # Modo de gráfica
     label_modo = ttk.Label(frame, text="Seleccione el modo de visualización:", font=('Helvetica', 12))

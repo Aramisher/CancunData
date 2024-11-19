@@ -8,7 +8,7 @@ def procesar_datos(ruta_archivo, tipo_grafica="linea", modo="independiente", car
     """
     Procesa los datos de un archivo Excel, valida y genera gráficas según las opciones del usuario.
     :param ruta_archivo: Ruta del archivo Excel.
-    :param tipo_grafica: Tipo de gráfica ('linea' o 'barras').
+    :param tipo_grafica: Tipo de gráfica ('linea', 'barras', 'pie').
     :param modo: Modo de visualización ('independiente', 'acumulativo' o 'ambos').
     :param carpeta_salida: Carpeta donde se guardarán las gráficas.
     :return: Lista de errores encontrados, o None si no hay errores.
@@ -34,7 +34,7 @@ def generar_graficas(df, tipo_grafica="linea", modo="independiente", carpeta_sal
     """
     Genera gráficas para cada columna del DataFrame según el tipo y modo seleccionados.
     :param df: DataFrame con los datos.
-    :param tipo_grafica: Tipo de gráfica ('linea' o 'barras').
+    :param tipo_grafica: Tipo de gráfica ('linea', 'barras', 'pie').
     :param modo: Modo de visualización ('independiente', 'acumulativo' o 'ambos').
     :param carpeta_salida: Carpeta donde se guardarán las gráficas.
     """
@@ -66,9 +66,15 @@ def generar_graficas(df, tipo_grafica="linea", modo="independiente", carpeta_sal
                 plt.legend()
                 plt.savefig(f'{carpeta_salida}/{columna}_independiente_barras.png')
                 plt.close()
+            elif tipo_grafica == "pie":
+                plt.figure(figsize=(8, 8))
+                plt.pie(df[columna], labels=eje_x, autopct='%1.1f%%', startangle=140)
+                plt.title(f'{columna} - Distribución Mensual (Pie Chart)')
+                plt.savefig(f'{carpeta_salida}/{columna}_pie.png')
+                plt.close()
 
         # Acumulativo
-        if modo in ["acumulativo", "ambos"]:
+        if modo in ["acumulativo", "ambos"] and tipo_grafica != "pie":  # Pie no aplica para acumulativo
             acumulativo = df[columna].cumsum()
             if tipo_grafica == "linea":
                 plt.figure(figsize=(10, 5))
