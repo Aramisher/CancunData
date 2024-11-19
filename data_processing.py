@@ -31,48 +31,59 @@ def procesar_datos(ruta_archivo, tipo_grafica="linea", modo="independiente"):
 
 def generar_graficas(df, tipo_grafica="linea", modo="independiente"):
     """
-    Genera gráficas según el tipo y modo seleccionados.
+    Genera gráficas para cada columna del DataFrame según el tipo y modo seleccionados.
     :param df: DataFrame con los datos.
     :param tipo_grafica: Tipo de gráfica ('linea' o 'barras').
     :param modo: Modo de visualización ('independiente', 'acumulativo' o 'ambos').
     """
     os.makedirs('outputs/graficas/', exist_ok=True)
 
-    if modo in ["independiente", "ambos"]:
-        if tipo_grafica == "linea":
-            plt.figure(figsize=(10, 5))
-            plt.plot(df['Mes'], df['Ventas'], marker='o', label="Ventas Independientes")
-            plt.title('Ventas Mensuales (Independiente)')
-            plt.xlabel('Mes')
-            plt.ylabel('Ventas')
-            plt.legend()
-            plt.grid(True)
-            plt.savefig('outputs/graficas/ventas_independiente_linea.png')
-        elif tipo_grafica == "barras":
-            plt.figure(figsize=(10, 5))
-            plt.bar(df['Mes'], df['Ventas'], label="Ventas Independientes")
-            plt.title('Ventas Mensuales (Independiente)')
-            plt.xlabel('Mes')
-            plt.ylabel('Ventas')
-            plt.legend()
-            plt.savefig('outputs/graficas/ventas_independiente_barras.png')
+    # Asumimos que la primera columna es el eje X (como "Mes")
+    eje_x = df.iloc[:, 0]  # Primera columna
+    columnas = df.columns[1:]  # Todas las demás columnas
 
-    if modo in ["acumulativo", "ambos"]:
-        ventas_acumuladas = df['Ventas'].cumsum()
-        if tipo_grafica == "linea":
-            plt.figure(figsize=(10, 5))
-            plt.plot(df['Mes'], ventas_acumuladas, marker='o', label="Ventas Acumulativas")
-            plt.title('Ventas Mensuales (Acumulativo)')
-            plt.xlabel('Mes')
-            plt.ylabel('Ventas Acumulativas')
-            plt.legend()
-            plt.grid(True)
-            plt.savefig('outputs/graficas/ventas_acumulativo_linea.png')
-        elif tipo_grafica == "barras":
-            plt.figure(figsize=(10, 5))
-            plt.bar(df['Mes'], ventas_acumuladas, label="Ventas Acumulativas")
-            plt.title('Ventas Mensuales (Acumulativo)')
-            plt.xlabel('Mes')
-            plt.ylabel('Ventas Acumulativas')
-            plt.legend()
-            plt.savefig('outputs/graficas/ventas_acumulativo_barras.png')
+    for columna in columnas:
+        # Independiente
+        if modo in ["independiente", "ambos"]:
+            if tipo_grafica == "linea":
+                plt.figure(figsize=(10, 5))
+                plt.plot(eje_x, df[columna], marker='o', label=f"{columna} Independiente")
+                plt.title(f'{columna} Mensual (Independiente)')
+                plt.xlabel(eje_x.name)
+                plt.ylabel(columna)
+                plt.legend()
+                plt.grid(True)
+                plt.savefig(f'outputs/graficas/{columna}_independiente_linea.png')
+                plt.close()
+            elif tipo_grafica == "barras":
+                plt.figure(figsize=(10, 5))
+                plt.bar(eje_x, df[columna], label=f"{columna} Independiente")
+                plt.title(f'{columna} Mensual (Independiente)')
+                plt.xlabel(eje_x.name)
+                plt.ylabel(columna)
+                plt.legend()
+                plt.savefig(f'outputs/graficas/{columna}_independiente_barras.png')
+                plt.close()
+
+        # Acumulativo
+        if modo in ["acumulativo", "ambos"]:
+            acumulativo = df[columna].cumsum()
+            if tipo_grafica == "linea":
+                plt.figure(figsize=(10, 5))
+                plt.plot(eje_x, acumulativo, marker='o', label=f"{columna} Acumulativo")
+                plt.title(f'{columna} Mensual (Acumulativo)')
+                plt.xlabel(eje_x.name)
+                plt.ylabel(f"{columna} Acumulativo")
+                plt.legend()
+                plt.grid(True)
+                plt.savefig(f'outputs/graficas/{columna}_acumulativo_linea.png')
+                plt.close()
+            elif tipo_grafica == "barras":
+                plt.figure(figsize=(10, 5))
+                plt.bar(eje_x, acumulativo, label=f"{columna} Acumulativo")
+                plt.title(f'{columna} Mensual (Acumulativo)')
+                plt.xlabel(eje_x.name)
+                plt.ylabel(f"{columna} Acumulativo")
+                plt.legend()
+                plt.savefig(f'outputs/graficas/{columna}_acumulativo_barras.png')
+                plt.close()
