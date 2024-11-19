@@ -1,38 +1,52 @@
 import tkinter as tk
+from tkinter import filedialog, messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
-from tkinter import filedialog, messagebox
 from data_processing import procesar_datos
 
 def iniciar_aplicacion():
     """
     Inicia la interfaz gráfica de usuario.
     """
+    def seleccionar_carpeta():
+        # Permite al usuario seleccionar una carpeta para guardar los gráficos
+        carpeta = filedialog.askdirectory()
+        if carpeta:
+            return carpeta
+        else:
+            messagebox.showwarning("Advertencia", "No se seleccionó ninguna carpeta.")
+            return None
+
     def seleccionar_archivo():
+        # Permite al usuario seleccionar un archivo Excel
         ruta_archivo = filedialog.askopenfilename(filetypes=[("Archivos Excel", "*.xlsx *.xls")])
         if ruta_archivo:
+            # Mostrar mensaje profesional
+            messagebox.showinfo(
+                "Seleccione Carpeta de Salida",
+                "A continuación, deberá seleccionar la carpeta donde se guardarán los gráficos generados. Por favor, elija una ubicación adecuada."
+            )
+            # Continuar con la selección de carpeta
             tipo_grafica = tipo_var.get()
             modo_grafica = modo_var.get()
-            errores = procesar_datos(ruta_archivo, tipo_grafica, modo_grafica)
-            if errores:
-                messagebox.showerror(
-                    "Errores Encontrados",
-                    "Se encontraron errores en el archivo. Revisa el reporte en 'outputs/reportes/'."
-                )
+            carpeta_graficas = seleccionar_carpeta()  # Obtener carpeta donde guardar las gráficas
+            if carpeta_graficas:
+                errores = procesar_datos(ruta_archivo, tipo_grafica, modo_grafica, carpeta_graficas)
+                if errores:
+                    messagebox.showerror("Errores Encontrados", f"Se encontraron errores en el archivo. Revisa el reporte.")
+                else:
+                    messagebox.showinfo("Proceso Exitoso", "Las gráficas se generaron correctamente.")
             else:
-                messagebox.showinfo(
-                    "Proceso Exitoso",
-                    "Las gráficas se generaron correctamente en 'outputs/graficas/'."
-                )
+                messagebox.showwarning("Advertencia", "No se seleccionó carpeta para guardar las gráficas.")
 
-    # Crear la ventana principal
+    # Crear ventana principal con un tema de ttkbootstrap
     ventana = ttk.Window(themename='cosmo')
     ventana.title("Procesador de Datos")
-    ventana.geometry("500x400")  # Tamaño inicial más grande para evitar ventana vacía
+    ventana.geometry("600x400")
 
-    # Crear un marco principal
+    # Crear un marco para los widgets
     frame = ttk.Frame(ventana, padding=20)
-    frame.pack(expand=True, fill=BOTH)  # Asegura que el marco ocupe todo el espacio disponible
+    frame.pack(expand=True, fill=BOTH)
 
     # Tipo de gráfica
     label_tipo = ttk.Label(frame, text="Seleccione el tipo de gráfica:", font=('Helvetica', 12))
@@ -54,30 +68,13 @@ def iniciar_aplicacion():
     radio_ambos = ttk.Radiobutton(frame, text="Ambos", variable=modo_var, value="ambos", bootstyle="success")
     radio_ambos.pack(anchor='w', pady=2)
 
-    # Estilo personalizado para un botón más pequeño y con bordes redondeados
-    style = ttk.Style()
-    style.configure(
-        "Custom.TButton", 
-        font=("Helvetica", 10),  # Texto más pequeño
-        padding=(5, 5),  # Reduce el padding
-        borderwidth=2,
-        focusthickness=3,
-        focuscolor="none",
-    )
-    style.map(
-        "Custom.TButton", 
-        background=[("active", "#0056b3"), ("!active", "#007bff")],  # Azul claro
-        foreground=[("active", "white"), ("!active", "white")],
-        relief=[("pressed", "groove"), ("!pressed", "ridge")]
-    )
-
-    # Botón para seleccionar archivo (con estilo personalizado)
+    # Botón para seleccionar archivo
     btn_seleccionar = ttk.Button(
         frame,
         text="Seleccionar Archivo Excel",
         command=seleccionar_archivo,
         bootstyle='primary',
-        style="Custom.TButton"  # Aplica el estilo personalizado
+        padding=(5, 5)
     )
     btn_seleccionar.pack(pady=20)
 
