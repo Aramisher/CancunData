@@ -6,7 +6,7 @@ import os
 
 def procesar_datos(ruta_archivo, tipo_grafica="linea", modo="independiente", carpeta_salida="outputs/graficas"):
     """
-    Procesa los datos de un archivo Excel, valida y genera gráficas según las opciones del usuario.
+    Procesa los datos de un archivo Excel, valida y genera gráficas y un reporte según las opciones del usuario.
     :param ruta_archivo: Ruta del archivo Excel.
     :param tipo_grafica: Tipo de gráfica ('linea', 'barras', 'pie').
     :param modo: Modo de visualización ('independiente', 'acumulativo' o 'ambos').
@@ -24,6 +24,7 @@ def procesar_datos(ruta_archivo, tipo_grafica="linea", modo="independiente", car
             return errores
         else:
             generar_graficas(df, tipo_grafica, modo, carpeta_salida)
+            generar_reporte_uniforme(df, carpeta_salida)
             return None
     except Exception as e:
         print(f"Ocurrió un error al procesar los datos: {e}")
@@ -40,58 +41,110 @@ def generar_graficas(df, tipo_grafica="linea", modo="independiente", carpeta_sal
     """
     os.makedirs(carpeta_salida, exist_ok=True)
 
-    # Asumimos que la primera columna es el eje X (como "Mes")
+    # Detectar si la primera columna es de tipo 'Mes' o 'Día'
     eje_x = df.iloc[:, 0]  # Primera columna
-    columnas = df.columns[1:]  # Todas las demás columnas
+    eje_x_nombre = eje_x.name.lower()
+    if "mes" in eje_x_nombre or "día" in eje_x_nombre or "dia" in eje_x_nombre:
+        columnas = df.select_dtypes(include=['number']).columns[1:]  # Omitir la primera columna
+    else:
+        columnas = df.select_dtypes(include=['number']).columns
 
     for columna in columnas:
-        # Independiente
-        if modo in ["independiente", "ambos"]:
-            if tipo_grafica == "linea":
-                plt.figure(figsize=(10, 5))
-                plt.plot(eje_x, df[columna], marker='o', label=f"{columna} Independiente")
-                plt.title(f'{columna} Mensual (Independiente)')
-                plt.xlabel(eje_x.name)
-                plt.ylabel(columna)
-                plt.legend()
-                plt.grid(True)
-                plt.savefig(f'{carpeta_salida}/{columna}_independiente_linea.png')
-                plt.close()
-            elif tipo_grafica == "barras":
-                plt.figure(figsize=(10, 5))
-                plt.bar(eje_x, df[columna], label=f"{columna} Independiente")
-                plt.title(f'{columna} Mensual (Independiente)')
-                plt.xlabel(eje_x.name)
-                plt.ylabel(columna)
-                plt.legend()
-                plt.savefig(f'{carpeta_salida}/{columna}_independiente_barras.png')
-                plt.close()
-            elif tipo_grafica == "pie":
-                plt.figure(figsize=(8, 8))
-                plt.pie(df[columna], labels=eje_x, autopct='%1.1f%%', startangle=140)
-                plt.title(f'{columna} - Distribución Mensual (Pie Chart)')
-                plt.savefig(f'{carpeta_salida}/{columna}_pie.png')
-                plt.close()
+        if tipo_grafica == "pie":
+            # Gráfico de Pie Chart siempre como independiente
+            plt.figure(figsize=(8, 8))
+            plt.pie(df[columna], labels=eje_x, autopct='%1.1f%%', startangle=140)
+            plt.title(f'{columna} - Distribución')
+            plt.savefig(f'{carpeta_salida}/{columna}_pie.png')
+            plt.close()
+        else:
+            # Independiente
+            if modo in ["independiente", "ambos"]:
+                if tipo_grafica == "linea":
+                    plt.figure(figsize=(10, 5))
+                    plt.plot(eje_x, df[columna], marker='o', label=f"{columna}")
+                    plt.title(f'{columna}')
+                    plt.xlabel(eje_x.name)
+                    plt.ylabel(columna)
+                    plt.legend()
+                    plt.grid(True)
+                    plt.savefig(f'{carpeta_salida}/{columna}_independiente_linea.png')
+                    plt.close()
+                elif tipo_grafica == "barras":
+                    plt.figure(figsize=(10, 5))
+                    plt.bar(eje_x, df[columna], label=f"{columna}")
+                    plt.title(f'{columna}')
+                    plt.xlabel(eje_x.name)
+                    plt.ylabel(columna)
+                    plt.legend()
+                    plt.savefig(f'{carpeta_salida}/{columna}_independiente_barras.png')
+                    plt.close()
 
-        # Acumulativo
-        if modo in ["acumulativo", "ambos"] and tipo_grafica != "pie":  # Pie no aplica para acumulativo
-            acumulativo = df[columna].cumsum()
-            if tipo_grafica == "linea":
-                plt.figure(figsize=(10, 5))
-                plt.plot(eje_x, acumulativo, marker='o', label=f"{columna} Acumulativo")
-                plt.title(f'{columna} Mensual (Acumulativo)')
-                plt.xlabel(eje_x.name)
-                plt.ylabel(f"{columna} Acumulativo")
-                plt.legend()
-                plt.grid(True)
-                plt.savefig(f'{carpeta_salida}/{columna}_acumulativo_linea.png')
-                plt.close()
-            elif tipo_grafica == "barras":
-                plt.figure(figsize=(10, 5))
-                plt.bar(eje_x, acumulativo, label=f"{columna} Acumulativo")
-                plt.title(f'{columna} Mensual (Acumulativo)')
-                plt.xlabel(eje_x.name)
-                plt.ylabel(f"{columna} Acumulativo")
-                plt.legend()
-                plt.savefig(f'{carpeta_salida}/{columna}_acumulativo_barras.png')
-                plt.close()
+            # Acumulativo
+            if modo in ["acumulativo", "ambos"]:
+                acumulativo = df[columna].cumsum()
+                if tipo_grafica == "linea":
+                    plt.figure(figsize=(10, 5))
+                    plt.plot(eje_x, acumulativo, marker='o', label=f"{columna}")
+                    plt.title(f'{columna} Acumulativo')
+                    plt.xlabel(eje_x.name)
+                    plt.ylabel(f"{columna} Acumulativo")
+                    plt.legend()
+                    plt.grid(True)
+                    plt.savefig(f'{carpeta_salida}/{columna}_acumulativo_linea.png')
+                    plt.close()
+                elif tipo_grafica == "barras":
+                    plt.figure(figsize=(10, 5))
+                    plt.bar(eje_x, acumulativo, label=f"{columna}")
+                    plt.title(f'{columna} Acumulativo')
+                    plt.xlabel(eje_x.name)
+                    plt.ylabel(f"{columna} Acumulativo")
+                    plt.legend()
+                    plt.savefig(f'{carpeta_salida}/{columna}_acumulativo_barras.png')
+                    plt.close()
+
+
+def generar_reporte_uniforme(df, carpeta_salida):
+    """
+    Genera un reporte uniforme con análisis detallado para todas las columnas numéricas, omitiendo la primera columna si es eje X.
+    :param df: DataFrame con los datos.
+    :param carpeta_salida: Carpeta donde se guardará el reporte.
+    """
+    reporte_path = os.path.join(carpeta_salida, "reporte_general.txt")
+
+    # Detectar si la primera columna es de tipo 'Mes' o 'Día'
+    eje_x = df.iloc[:, 0]  # Primera columna
+    eje_x_nombre = eje_x.name.lower()
+    if "mes" in eje_x_nombre or "día" in eje_x_nombre or "dia" in eje_x_nombre:
+        columnas = df.select_dtypes(include=['number']).columns[1:]  # Omitir la primera columna
+    else:
+        columnas = df.select_dtypes(include=['number']).columns
+
+    with open(reporte_path, "w") as reporte:
+        reporte.write("REPORTE DETALLADO DE DATOS\n")
+        reporte.write("=" * 50 + "\n\n")
+
+        for columna in columnas:
+            datos = df[columna]
+
+            # Análisis detallado
+            reporte.write(f"ANÁLISIS DE '{columna}':\n")
+            reporte.write(f"- Valor máximo: {datos.max()}\n")
+            reporte.write(f"- Valor mínimo: {datos.min()}\n")
+            reporte.write(f"- Promedio: {datos.mean():.2f}\n")
+            reporte.write(f"- Suma total: {datos.sum()}\n")
+
+            # Cálculo de incrementos y decrementos
+            cambios = datos.pct_change().dropna() * 100
+            reporte.write(f"- Incremento/Decremento promedio (%): {cambios.mean():.2f}%\n")
+            reporte.write(f"- Máximo incremento (%): {cambios.max():.2f}%\n")
+            reporte.write(f"- Máximo decremento (%): {cambios.min():.2f}%\n")
+            reporte.write("\n")
+
+        # Resumen general
+        reporte.write("=" * 50 + "\n")
+        reporte.write("RESUMEN GENERAL\n")
+        reporte.write(f"- Columnas analizadas: {', '.join(columnas)}\n")
+        reporte.write(f"- Total de filas: {len(df)}\n")
+
+    print(f"Reporte generado: {reporte_path}")

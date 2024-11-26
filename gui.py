@@ -31,11 +31,21 @@ def iniciar_aplicacion():
             modo_grafica = modo_var.get()
             carpeta_graficas = seleccionar_carpeta()  # Obtener carpeta donde guardar las gráficas
             if carpeta_graficas:
-                errores = procesar_datos(ruta_archivo, tipo_grafica, modo_grafica, carpeta_graficas)
-                if errores:
-                    messagebox.showerror("Errores Encontrados", f"Se encontraron errores en el archivo. Revisa el reporte.")
+                if tipo_grafica == "todos":
+                    # Generar los tres tipos de gráficos
+                    for grafica in ["linea", "barras", "pie"]:
+                        errores = procesar_datos(ruta_archivo, grafica, modo_grafica, carpeta_graficas)
+                        if errores:
+                            messagebox.showerror("Errores Encontrados", f"Se encontraron errores en el archivo. Revisa el reporte.")
+                            return
+                    messagebox.showinfo("Proceso Exitoso", "Se generaron las gráficas de línea, barras y pie correctamente.")
                 else:
-                    messagebox.showinfo("Proceso Exitoso", "Las gráficas se generaron correctamente.")
+                    # Generar solo el tipo de gráfico seleccionado
+                    errores = procesar_datos(ruta_archivo, tipo_grafica, modo_grafica, carpeta_graficas)
+                    if errores:
+                        messagebox.showerror("Errores Encontrados", f"Se encontraron errores en el archivo. Revisa el reporte.")
+                    else:
+                        messagebox.showinfo("Proceso Exitoso", "Las gráficas y el reporte se generaron correctamente.")
             else:
                 messagebox.showwarning("Advertencia", "No se seleccionó carpeta para guardar las gráficas.")
 
@@ -58,6 +68,8 @@ def iniciar_aplicacion():
     radio_barras.pack(anchor='w', pady=2)
     radio_pie = ttk.Radiobutton(frame, text="Pie Chart", variable=tipo_var, value="pie", bootstyle="primary")
     radio_pie.pack(anchor='w', pady=2)
+    radio_todos = ttk.Radiobutton(frame, text="Todos", variable=tipo_var, value="todos", bootstyle="primary")
+    radio_todos.pack(anchor='w', pady=2)
 
     # Modo de gráfica
     label_modo = ttk.Label(frame, text="Seleccione el modo de visualización:", font=('Helvetica', 12))
